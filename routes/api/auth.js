@@ -5,7 +5,7 @@ const auth = require('../auth');
 const Users = mongoose.model('Users');
 
 //POST new user route (optional, everyone has access)
-router.post('/', auth.optional, (req, res) => {
+router.post('/signup', auth.optional, (req, res) => {
   const user = req.body;
 
   if (!user.username) {
@@ -26,22 +26,32 @@ router.post('/', auth.optional, (req, res) => {
     });
   }
 
+  // Cerco prima se la mail è già stata inserita
   Users.findOne({ email: user.email }, async (err, doc) => {
     if (err) throw err;
     if (doc) {
-      return res.status(422).json({ message: 'Email già presente nel database' });
+      return res.status(422).json({ message: 'Questa email è già stata utilizzata' });
     }
     if (!doc) {
-      const finalUser = new Users(user);
-      finalUser.setPassword(user.password);
-      await finalUser.save();
-      res.send('User created');
+      // Cerco se l'username è già stato inserito
+      Users.findOne({ username: user.username }, async (err, usDoc) => {
+        if (err) throw err;
+        if (usDoc) {
+          return res.status(422).json({ message: 'Questo username è già stato preso' });
+        }
+        if (!usDoc) {
+          const finalUser = new Users(user);
+          finalUser.setPassword(user.password);
+          await finalUser.save();
+          res.json(finalUser.toAuthJSON());
+        }
+      });
     }
   });
 });
 
 //POST login route (optional, everyone has access)
-router.post('/login', auth.optional, (req, res, next) => {
+router.post('/signin', auth.optional, (req, res, next) => {
   const user = req.body;
 
   if (!user.email) {
@@ -60,11 +70,11 @@ router.post('/login', auth.optional, (req, res, next) => {
     if (passportUser) {
       const user = passportUser;
       user.token = passportUser.generateJWT();
-
-      return res.json(user.toAuthJSON());
+      return res.status(201).json(user.toAuthJSON());
     }
 
-    return res.sendStatus(400).info;
+    return res.status(401).json({ message: 'Email o password sbagliati' });
+
   })(req, res, next);
 });
 
