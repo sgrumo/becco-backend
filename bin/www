@@ -24,9 +24,23 @@ let server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
+// Websocket
+const WebSocket = require('ws');
+const wss = new WebSocket.Server({ server });
+
+let wsHandle = require('../utils/websocket.js');
+
+wss.on('connection', (ws) => {
+    wsHandle(ws);
+});
+
+
+
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
+
 
 /**
  * Normalize a port into a number, string, or false.

@@ -87,10 +87,10 @@ router.post('/', auth.required, (req, res) => {
             if (!user) {
                 return res.status(400).json({ message: 'Ma che cazzo è successo' });
             }
-            const index = matches.findIndex(value => value.author === user.username);
+            const index = matches.findIndex(value => value.players.includes(user.username));
 
             if (index !== -1) {
-                return res.status(422).json({ message: 'L\'utente ha già creato una partita!' });
+                return res.status(422).json({ message: 'Stai già partecipando ad una partita!' });
             }
 
             match.author = user.username;
@@ -98,7 +98,7 @@ router.post('/', auth.required, (req, res) => {
             match.players = [match.author];
             match.id = nanoid.nanoid(parseInt(process.env.NANOID_LENGTH));
             matches.push(match);
-            return res.status(201).json({ message: 'Partita creata con successo' });
+            return res.status(201).json({ id: match.id, message: 'Partita creata con successo' });
         });
 
 });
