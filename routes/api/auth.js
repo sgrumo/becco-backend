@@ -68,9 +68,9 @@ router.post('/signin', auth.optional, (req, res, next) => {
     }
 
     if (passportUser) {
-      const user = passportUser;
-      user.token = passportUser.generateJWT();
-      return res.status(201).json(user.toAuthJSON());
+      const pUser = passportUser;
+      pUser.token = passportUser.generateJWT();
+      return res.status(201).json(pUser.toAuthJSON());
     }
 
     return res.status(401).json({ message: 'Email o password sbagliati' });
